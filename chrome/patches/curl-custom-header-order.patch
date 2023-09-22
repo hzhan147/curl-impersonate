@@ -1,0 +1,60 @@
+diff --git a/lib/http.c b/lib/http.c
+index 219dcc2c0..ec997cd6b 100644
+--- a/lib/http.c
++++ b/lib/http.c
+@@ -3276,24 +3276,30 @@ CURLcode Curl_http(struct Curl_easy *data, bool *done)
+                   "%s",/* Alt-Used */
+ 
+                   httpstring,
+-                  (data->state.aptr.host?data->state.aptr.host:""),
++                  (Curl_checkheaders(data, STRCONST("Host"))!=NULL?""
++                    :data->state.aptr.host?data->state.aptr.host
++                    :""),
+                   data->state.aptr.proxyuserpwd?
+                   data->state.aptr.proxyuserpwd:"",
+                   data->state.aptr.userpwd?data->state.aptr.userpwd:"",
+                   (data->state.use_range && data->state.aptr.rangeline)?
+                   data->state.aptr.rangeline:"",
+-                  (data->set.str[STRING_USERAGENT] &&
+-                   *data->set.str[STRING_USERAGENT] &&
+-                   data->state.aptr.uagent)?
+-                  data->state.aptr.uagent:"",
+-                  p_accept?p_accept:"",
++                  Curl_checkheaders(data, STRCONST("User-Agent"))?""
++                    :(data->set.str[STRING_USERAGENT] &&
++                    *data->set.str[STRING_USERAGENT] &&
++                    data->state.aptr.uagent)?
++                    data->state.aptr.uagent:"",
++                  Curl_checkheaders(data, STRCONST("Accept"))?""
++                    :p_accept?p_accept:"",
+                   data->state.aptr.te?data->state.aptr.te:"",
+-                  (data->set.str[STRING_ENCODING] &&
+-                   *data->set.str[STRING_ENCODING] &&
+-                   data->state.aptr.accept_encoding)?
+-                  data->state.aptr.accept_encoding:"",
+-                  (data->state.referer && data->state.aptr.ref)?
+-                  data->state.aptr.ref:"" /* Referer: <data> */,
++                  Curl_checkheaders(data, STRCONST("Accept-Encoding"))?""
++                    :(data->set.str[STRING_ENCODING] &&
++                    *data->set.str[STRING_ENCODING] &&
++                    data->state.aptr.accept_encoding)?
++                    data->state.aptr.accept_encoding:"",
++                  Curl_checkheaders(data, STRCONST("Referer"))?""
++                    :(data->state.referer && data->state.aptr.ref)?
++                    data->state.aptr.ref:"" /* Referer: <data> */,
+ #ifndef CURL_DISABLE_PROXY
+                   (conn->bits.httpproxy &&
+                    !conn->bits.tunnel_proxy &&
+@@ -3320,6 +3326,12 @@ CURLcode Curl_http(struct Curl_easy *data, bool *done)
+     return result;
+   }
+ 
++  /* free host resource as we have defined the 'host' in our custom headers */
++  if(Curl_checkheaders(data, STRCONST("Host"))) {
++    free(data->state.aptr.host);
++    data->state.aptr.host = NULL;
++  }
++  
+   if(!(conn->handler->flags&PROTOPT_SSL) &&
+      conn->httpversion < 20 &&
+      (data->state.httpwant == CURL_HTTP_VERSION_2)) {
