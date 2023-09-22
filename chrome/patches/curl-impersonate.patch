@@ -1630,7 +1630,7 @@ index d1d32b793..3b49a1b4c 100644
  #ifdef USE_WINSOCK
    multi->wsa_event = WSACreateEvent();
 diff --git a/lib/setopt.c b/lib/setopt.c
-index 0c3b9634d..c22591f72 100644
+index 0c3b9634d..bf034a97c 100644
 --- a/lib/setopt.c
 +++ b/lib/setopt.c
 @@ -50,6 +50,7 @@
@@ -1693,7 +1693,7 @@ index 0c3b9634d..c22591f72 100644
  #endif
    case CURLOPT_IPRESOLVE:
      arg = va_arg(param, long);
-@@ -2953,6 +2992,22 @@ CURLcode Curl_vsetopt(struct Curl_easy *data, CURLoption option, va_list param)
+@@ -2953,6 +2992,24 @@ CURLcode Curl_vsetopt(struct Curl_easy *data, CURLoption option, va_list param)
    case CURLOPT_SSL_ENABLE_ALPN:
      data->set.ssl_enable_alpn = (0 != va_arg(param, long)) ? TRUE : FALSE;
      break;
@@ -1711,7 +1711,9 @@ index 0c3b9634d..c22591f72 100644
 +                            va_arg(param, char *));
 +    break;
 +  case CURLOPT_HTTP2_NO_SERVER_PUSH:
++#if defined(USE_HTTP2)
 +    data->set.http2_no_server_push = (0 != va_arg(param, long)) ? TRUE : FALSE;
++#endif
 +    break;
  #ifdef USE_UNIX_SOCKETS
    case CURLOPT_UNIX_SOCKET_PATH:
